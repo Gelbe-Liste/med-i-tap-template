@@ -72,9 +72,9 @@ export const modules: HubModule[] = [
     badge: "Suche",
     theme: {
       card:
-        "linear-gradient(135deg, #ffd400 0%, #f7b500 48%, #1f2937 100%)",
+        "linear-gradient(135deg, #ffd84d 0%, #ffcf1a 42%, #d7a900 100%)",
       page:
-        "radial-gradient(circle at 78% 8%, rgba(255, 255, 255, 0.35), transparent 26%), linear-gradient(135deg, #ffd400 0%, #f4bf00 40%, #111827 100%)",
+        "radial-gradient(circle at 78% 8%, rgba(255, 255, 255, 0.38), transparent 26%), linear-gradient(135deg, #ffe680 0%, #ffd84d 38%, #c99a00 100%)",
       accent: "#ffd400",
       text: "#111827"
     },
@@ -111,9 +111,9 @@ export const modules: HubModule[] = [
     badge: "News",
     theme: {
       card:
-        "linear-gradient(135deg, #fff7cc 0%, #ffd400 36%, #313131 100%)",
+        "linear-gradient(135deg, #fff6bf 0%, #ffe36a 42%, #d8b52a 100%)",
       page:
-        "radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.48), transparent 30%), linear-gradient(135deg, #fff3b0 0%, #ffd400 42%, #2d2d2d 100%)",
+        "radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.5), transparent 30%), linear-gradient(135deg, #fff9d8 0%, #ffe98f 42%, #d1ad28 100%)",
       accent: "#ffd400",
       text: "#171717"
     },
@@ -150,9 +150,9 @@ export const modules: HubModule[] = [
     badge: "Service",
     theme: {
       card:
-        "linear-gradient(135deg, #242424 0%, #111111 48%, #ffd400 140%)",
+        "linear-gradient(135deg, #3b3414 0%, #5a4d12 52%, #8a7414 100%)",
       page:
-        "radial-gradient(circle at 82% 8%, rgba(255, 212, 0, 0.38), transparent 28%), linear-gradient(135deg, #242424 0%, #111111 52%, #4b3b00 100%)",
+        "radial-gradient(circle at 82% 8%, rgba(255, 224, 102, 0.22), transparent 28%), linear-gradient(135deg, #2f2a12 0%, #4a4014 48%, #7c6918 100%)",
       accent: "#ffd400"
     },
     screens: [
@@ -183,9 +183,9 @@ export const modules: HubModule[] = [
     badge: "App",
     theme: {
       card:
-        "linear-gradient(135deg, #ffffff 0%, #f5f5f5 38%, #ffd400 100%)",
+        "linear-gradient(135deg, #fffdf2 0%, #fff3b8 46%, #ffd84d 100%)",
       page:
-        "radial-gradient(circle at 72% 8%, rgba(255, 212, 0, 0.45), transparent 30%), linear-gradient(135deg, #ffffff 0%, #f3f4f6 46%, #ffd400 110%)",
+        "radial-gradient(circle at 72% 8%, rgba(255, 212, 0, 0.34), transparent 30%), linear-gradient(135deg, #ffffff 0%, #fff8d9 44%, #ffd84d 100%)",
       accent: "#111827",
       text: "#111827"
     },
