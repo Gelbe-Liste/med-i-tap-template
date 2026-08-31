@@ -170,6 +170,7 @@ function ModuleScreen({
 }) {
   const screen = module.screens[screenIndex];
   const progress = ((screenIndex + 1) / module.screens.length) * 100;
+  const showProgress = module.screens.length > 1;
   const hasNext = screenIndex < module.screens.length - 1;
   const hasBack = screenIndex > 0;
 
@@ -215,16 +216,20 @@ function ModuleScreen({
         <Header onHome={goHome} onContact={openContact} />
 
         <main className="module-screen" style={{ background: module.theme.page }}>
-          <div className="module-progress-row">
-            <span>{module.eyebrow}</span>
-            <span>
-              {screenIndex + 1}/{module.screens.length}
-            </span>
-          </div>
+          {showProgress && (
+            <>
+              <div className="module-progress-row">
+                <span>{module.eyebrow}</span>
+                <span>
+                  {screenIndex + 1}/{module.screens.length}
+                </span>
+              </div>
 
-          <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${progress}%`, background: module.theme.accent }} />
-          </div>
+              <div className="progress-track">
+                <div className="progress-fill" style={{ width: `${progress}%`, background: module.theme.accent }} />
+              </div>
+            </>
+          )}
 
           <section className="screen-card">
             <div className="screen-label">{screen.label}</div>
