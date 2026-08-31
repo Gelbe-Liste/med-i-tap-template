@@ -172,7 +172,6 @@ function ModuleScreen({
   const progress = ((screenIndex + 1) / module.screens.length) * 100;
   const showProgress = module.screens.length > 1;
   const hasNext = screenIndex < module.screens.length - 1;
-  const hasBack = screenIndex > 0;
 
   const goHome = () => setView({ type: "home" });
 
@@ -193,21 +192,6 @@ function ModuleScreen({
     });
 
     setView({ type: "module", moduleId: module.id, screenIndex: screenIndex + 1 });
-  };
-
-  const goBack = () => {
-    if (!hasBack) {
-      goHome();
-      return;
-    }
-
-    trackEvent("screen_back", {
-      module_id: module.id,
-      from_screen: screen.label,
-      to_screen: module.screens[screenIndex - 1].label
-    });
-
-    setView({ type: "module", moduleId: module.id, screenIndex: screenIndex - 1 });
   };
 
   return (
@@ -239,8 +223,6 @@ function ModuleScreen({
           </section>
 
           <nav className="bottom-nav">
-            <button onClick={goBack}>{hasBack ? "Zurück" : "Menü"}</button>
-            <button onClick={goHome}>Home</button>
             <button className="primary" onClick={goNext}>
               {hasNext ? "Weiter" : "Fertig"}
             </button>
@@ -273,8 +255,6 @@ function ContactScreen({ setView }: { setView: (view: View) => void }) {
           </section>
 
           <nav className="bottom-nav">
-            <button onClick={() => setView({ type: "home" })}>Zurück</button>
-            <button onClick={() => setView({ type: "home" })}>Home</button>
             <button className="primary" onClick={() => setView({ type: "home" })}>
               Fertig
             </button>
