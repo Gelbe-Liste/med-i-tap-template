@@ -68,7 +68,7 @@ export const modules: HubModule[] = [
     eyebrow: "Fachportal",
     title: "Arzneimittel schnell finden",
     subtitle:
-      "Direkter Einstieg in die Suche nach Präparaten, Wirkstoffen und relevanten Arzneimittelinformationen.",
+      "Direkter Einstieg in die Suche nach Präparaten, Wirkstoffen und relevanten Arzneimittel-Informationen.",
     badge: "Suche",
     theme: {
       card:
@@ -81,7 +81,7 @@ export const modules: HubModule[] = [
     screens: [
       {
         label: "Einstieg",
-        title: "Schneller Zugriff auf Arzneimittelinformationen",
+        title: "Schneller Zugriff auf Arzneimittel-Informationen",
         body:
           "Dieses Modul dient als mobiler Einstieg in die Arzneimittelrecherche der Gelben Liste. Inhalte und Ziel-URL können pro Kundenprojekt angepasst werden.",
         cards: [
