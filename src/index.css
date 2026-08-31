@@ -52,8 +52,8 @@ button {
   position: sticky;
   top: 0;
   z-index: 20;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
+  justify-content: space-between;
   gap: 10px;
   align-items: center;
   padding: 16px 16px;
@@ -78,43 +78,23 @@ button {
   color: #ffffff;
 }
 
-.gl-logo {
+.header-logo-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-width: 0;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
 }
 
-.gl-logo-mark {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: var(--yellow);
-  color: var(--ink);
-  font-size: 22px;
-  font-weight: 950;
-  letter-spacing: -0.08em;
-}
-
-.gl-logo-text {
-  display: grid;
-  line-height: 1;
-}
-
-.gl-logo-text strong {
-  font-size: 15px;
-  font-weight: 950;
-  letter-spacing: -0.02em;
-}
-
-.gl-logo-text span {
-  margin-top: 3px;
-  font-size: 8px;
-  font-weight: 900;
-  letter-spacing: 0.24em;
+.header-logo-button img {
+  display: block;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
 }
 
 .home-screen {
@@ -519,7 +499,4 @@ button {
     font-size: 12px;
   }
 
-  .gl-logo-text strong {
-    font-size: 13px;
-  }
 }

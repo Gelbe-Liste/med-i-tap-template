@@ -15,25 +15,12 @@ function trackEvent(eventName: string, data?: Record<string, string | number>) {
   // window.gtag?.("event", eventName, data);
 }
 
-function Logo() {
-  return (
-    <div className="gl-logo" aria-label="Gelbe Liste Pharmindex">
-      <div className="gl-logo-mark">G</div>
-      <div className="gl-logo-text">
-        <strong>GELBE LISTE.</strong>
-        <span>PHARMINDEX</span>
-      </div>
-    </div>
-  );
-}
-
 function Header({ onHome, onContact }: { onHome: () => void; onContact: () => void }) {
   return (
     <header className="app-header">
-      <button className="header-button" onClick={onHome} aria-label="Zum Hauptmenü">
-        Menü
+      <button className="header-logo-button" onClick={onHome} aria-label="Zum Hauptmenü">
+        <img src="/icons/icon-192.png" alt="Gelbe Liste Pharmindex" />
       </button>
-      <Logo />
       <button className="header-button contact" onClick={onContact} aria-label="Kontakt öffnen">
         Kontakt
       </button>
