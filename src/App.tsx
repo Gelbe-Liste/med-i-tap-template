@@ -15,12 +15,26 @@ function trackEvent(eventName: string, data?: Record<string, string | number>) {
   // window.gtag?.("event", eventName, data);
 }
 
-function Header({ onHome, onContact }: { onHome: () => void; onContact: () => void }) {
+function Header({
+  onHome,
+  onContact,
+  contextText
+}: {
+  onHome: () => void;
+  onContact: () => void;
+  contextText: string;
+}) {
   return (
     <header className="app-header">
-      <button className="header-logo-button" onClick={onHome} aria-label="Zum Hauptmenü">
-        <img src="/icons/icon-192.png" alt="Gelbe Liste Pharmindex" />
-      </button>
+      <div className="header-brand">
+        <button className="header-logo-button" onClick={onHome} aria-label="Zum Hauptmenü">
+          <img src="/icons/icon-192.png" alt="Gelbe Liste Pharmindex" />
+        </button>
+        <div className="header-context" aria-label={`Medizinisches Fachgebiet: ${contextText}`}>
+          <span className="header-context-label">Medizinisches Fachgebiet</span>
+          <span className="header-context-value">{contextText}</span>
+        </div>
+      </div>
       <button className="header-button contact" onClick={onContact} aria-label="Kontakt öffnen">
         Kontakt
       </button>
@@ -32,7 +46,7 @@ function HomeScreen({ openModule, openContact }: { openModule: (moduleId: string
   return (
     <div className="page-shell">
       <div className="phone">
-        <Header onHome={() => undefined} onContact={openContact} />
+        <Header onHome={() => undefined} onContact={openContact} contextText="Indikation" />
 
         <main className="home-screen">
           <div className="badge">{hubConfig.badge}</div>
@@ -197,7 +211,7 @@ function ModuleScreen({
   return (
     <div className="page-shell">
       <div className="phone">
-        <Header onHome={goHome} onContact={openContact} />
+        <Header onHome={goHome} onContact={openContact} contextText={module.eyebrow} />
 
         <main className="module-screen" style={{ background: module.theme.page }}>
           {showProgress && (
@@ -237,7 +251,7 @@ function ContactScreen({ setView }: { setView: (view: View) => void }) {
   return (
     <div className="page-shell">
       <div className="phone">
-        <Header onHome={() => setView({ type: "home" })} onContact={() => undefined} />
+        <Header onHome={() => setView({ type: "home" })} onContact={() => undefined} contextText="Kontakt" />
 
         <main className="module-screen contact-screen">
           <section className="screen-card">

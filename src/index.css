@@ -62,6 +62,43 @@ button {
   backdrop-filter: blur(14px);
 }
 
+
+.header-brand {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+}
+
+.header-context {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  line-height: 1.15;
+}
+
+.header-context-label {
+  color: #ffd400;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.header-context-value {
+  margin-top: 4px;
+  max-width: 190px;
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .header-button {
   min-height: 40px;
   border: 0;
@@ -520,6 +557,15 @@ button {
 
   .header-button {
     padding: 0 10px;
+    font-size: 12px;
+  }
+
+  .header-context-label {
+    font-size: 10px;
+  }
+
+  .header-context-value {
+    max-width: 150px;
     font-size: 12px;
   }
 
