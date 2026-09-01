@@ -74,13 +74,13 @@ button {
 }
 
 .header-button.contact {
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: transparent;
-  color: #ffffff;
+  border: 1px solid #ffd400;
+  background: #ffd400;
+  color: #111111;
 }
 
 .header-button.contact:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: #e8c100;
 }
 
 .header-logo-button {
@@ -258,17 +258,20 @@ button {
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-top: 22px;
-  color: #4b5563;
+  margin: 22px -20px -36px;
+  padding: 18px 20px;
+  background: #000000;
+  color: #ffd400;
   font-size: 12px;
 }
 
 .legal-footer a {
-  color: #111827;
+  color: #ffd400;
   text-decoration: none;
 }
 
 .legal-footer a:hover {
+  color: #ffe866;
   text-decoration: underline;
 }
 
