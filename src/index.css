@@ -57,8 +57,8 @@ button {
   gap: 10px;
   align-items: center;
   padding: 16px 16px;
-  background: rgba(255, 255, 255, 0.92);
-  border-bottom: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.94);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(14px);
 }
 
@@ -74,8 +74,13 @@ button {
 }
 
 .header-button.contact {
-  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: transparent;
   color: #ffffff;
+}
+
+.header-button.contact:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .header-logo-button {
@@ -462,8 +467,8 @@ button {
   justify-content: flex-end;
   gap: 10px;
   padding: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(17, 24, 39, 0.9);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.94);
   backdrop-filter: blur(14px);
 }
 
@@ -478,8 +483,13 @@ button {
 }
 
 .bottom-nav button.primary {
-  background: var(--yellow);
-  color: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: transparent;
+  color: #ffffff;
+}
+
+.bottom-nav button.primary:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 @media (max-width: 380px) {
