@@ -495,6 +495,16 @@ button {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.bottom-nav button.primary.is-finish {
+  border: 1px solid #ffd400;
+  background: #ffd400;
+  color: #111111;
+}
+
+.bottom-nav button.primary.is-finish:hover {
+  background: #e8c100;
+}
+
 @media (max-width: 380px) {
   .home-screen h1 {
     font-size: 40px;

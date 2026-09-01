@@ -223,7 +223,7 @@ function ModuleScreen({
           </section>
 
           <nav className="bottom-nav">
-            <button className="primary" onClick={goNext}>
+            <button className={`primary${hasNext ? "" : " is-finish"}`} onClick={goNext}>
               {hasNext ? "Weiter" : "Fertig"}
             </button>
           </nav>
@@ -255,7 +255,7 @@ function ContactScreen({ setView }: { setView: (view: View) => void }) {
           </section>
 
           <nav className="bottom-nav">
-            <button className="primary" onClick={() => setView({ type: "home" })}>
+            <button className="primary is-finish" onClick={() => setView({ type: "home" })}>
               Fertig
             </button>
           </nav>
