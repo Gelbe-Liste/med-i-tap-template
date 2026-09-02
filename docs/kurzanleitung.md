@@ -11,4 +11,6 @@
 9. Impressum und Datenschutz in `public/impressum.html` und `public/datenschutz.html` finalisieren.
 10. Lokal testen: `npm run dev`.
 11. Für Livegang deployen: Vercel/Netlify, Build Command `npm run build`, Output `dist`.
-12. Finale URL auf NFC-Tag oder QR-Code schreiben.
+12. PWA-Angaben in `public/manifest.webmanifest` prüfen: App-Name, Kurzname, Beschreibung und Icons.
+13. App-Icons in `public/icons/` projektbezogen ersetzen (`180`, `192`, `512` px).
+14. Finale URL auf NFC-Tag oder QR-Code schreiben.

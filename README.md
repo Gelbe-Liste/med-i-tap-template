@@ -55,3 +55,17 @@ cta: {
 ## Tracking
 
 Die Funktion `trackEvent` in `src/App.tsx` protokolliert aktuell nur in der Konsole. Dort kann später Piano Analytics, Matomo oder GA4 angebunden werden.
+
+
+## PWA / Installation
+
+Das Template ist als installierbare Progressive Web App vorbereitet:
+
+- `public/manifest.webmanifest` definiert App-Name, Start-URL, Farben und Icons.
+- `display: "standalone"` startet die installierte Anwendung ohne normale Browser-Navigation.
+- `public/sw.js` wird in `src/main.tsx` registriert.
+- Auf Android sowie in Chromium-basierten Desktop-Browsern nutzt der Button den nativen Installationsdialog, sofern verfügbar.
+- Auf iOS/iPadOS zeigt der Button die Schritte „Teilen“ → „Zum Home-Bildschirm“ → „Hinzufügen“.
+- Ist die App bereits im Standalone-Modus geöffnet, wird der Installationsbutton automatisch ausgeblendet.
+
+Für Kundenprojekte sollten App-Name, `short_name`, Beschreibung und Icons im Manifest angepasst werden.

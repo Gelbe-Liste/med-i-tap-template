@@ -1,10 +1,92 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { hubConfig, modules, type Cta, type HubModule, type ModuleScreen } from "./content";
 
 type View =
   | { type: "home" }
   | { type: "module"; moduleId: string; screenIndex: number }
   | { type: "contact" };
+
+type InstallMode = "prompt" | "ios" | "manual" | "installed";
+
+type InstallPromptResult = { outcome: "accepted" | "dismissed"; platform: string };
+
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<InstallPromptResult>;
+};
+
+function isStandaloneMode() {
+  const iosNavigator = navigator as Navigator & { standalone?: boolean };
+  return window.matchMedia("(display-mode: standalone)").matches || iosNavigator.standalone === true;
+}
+
+function isIosDevice() {
+  const ua = navigator.userAgent;
+  const classicIos = /iPad|iPhone|iPod/i.test(ua);
+  const iPadDesktopMode = /Macintosh/i.test(ua) && navigator.maxTouchPoints > 1;
+  return classicIos || iPadDesktopMode;
+}
+
+function usePwaInstall() {
+  const [installMode, setInstallMode] = useState<InstallMode>("manual");
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+  useEffect(() => {
+    if (isStandaloneMode()) {
+      setInstallMode("installed");
+    } else if (isIosDevice()) {
+      setInstallMode("ios");
+    } else {
+      setInstallMode("manual");
+    }
+
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setDeferredPrompt(event as BeforeInstallPromptEvent);
+      setInstallMode("prompt");
+    };
+
+    const handleInstalled = () => {
+      setDeferredPrompt(null);
+      setInstallMode("installed");
+      trackEvent("pwa_installed");
+    };
+
+    const mediaQuery = window.matchMedia("(display-mode: standalone)");
+    const handleDisplayModeChange = () => {
+      if (mediaQuery.matches) {
+        setInstallMode("installed");
+      }
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleInstalled);
+    mediaQuery.addEventListener?.("change", handleDisplayModeChange);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleInstalled);
+      mediaQuery.removeEventListener?.("change", handleDisplayModeChange);
+    };
+  }, []);
+
+  const requestInstall = async () => {
+    if (!deferredPrompt) return null;
+
+    trackEvent("pwa_install_prompt_open");
+    const choice = await deferredPrompt.prompt();
+
+    trackEvent("pwa_install_prompt_result", { outcome: choice.outcome });
+
+    if (choice.outcome === "accepted") {
+      setInstallMode("installed");
+    }
+
+    setDeferredPrompt(null);
+    return choice.outcome;
+  };
+
+  return { installMode, requestInstall };
+}
 
 function trackEvent(eventName: string, data?: Record<string, string | number>) {
   console.log("[Tracking]", eventName, data);
@@ -13,6 +95,88 @@ function trackEvent(eventName: string, data?: Record<string, string | number>) {
   // window.pa?.sendEvent(eventName, data);
   // window._paq?.push(["trackEvent", "NFC Microsite", eventName, JSON.stringify(data)]);
   // window.gtag?.("event", eventName, data);
+}
+
+function InstallAppControl({
+  installMode,
+  requestInstall
+}: {
+  installMode: InstallMode;
+  requestInstall: () => Promise<"accepted" | "dismissed" | null>;
+}) {
+  const [showHelp, setShowHelp] = useState(false);
+
+  if (installMode === "installed") return null;
+
+  const handleInstall = async () => {
+    if (installMode === "prompt") {
+      await requestInstall();
+      return;
+    }
+
+    trackEvent("pwa_install_help_open", { platform: installMode });
+    setShowHelp(true);
+  };
+
+  const isIos = installMode === "ios";
+
+  return (
+    <section className="install-card" aria-label="App auf dem Gerät installieren">
+      <div className="install-card-copy">
+        <strong>Direktzugriff auf dem Gerät</strong>
+        <span>Als App speichern und später ohne Browserleiste starten.</span>
+      </div>
+      <button className="install-button" onClick={handleInstall}>
+        {isIos ? "Zum Home-Bildschirm" : "App installieren"}
+      </button>
+
+      {showHelp && (
+        <div className="install-dialog-backdrop" role="presentation" onClick={() => setShowHelp(false)}>
+          <div
+            className="install-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="install-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button className="install-dialog-close" onClick={() => setShowHelp(false)} aria-label="Hinweis schließen">
+              ×
+            </button>
+            <div className="install-dialog-kicker">App installieren</div>
+            <h2 id="install-dialog-title">{isIos ? "Zum Home-Bildschirm hinzufügen" : "Im Browser installieren"}</h2>
+
+            {isIos ? (
+              <>
+                <ol className="install-steps">
+                  <li>In Safari das <strong>Teilen-Symbol</strong> öffnen.</li>
+                  <li><strong>„Zum Home-Bildschirm“</strong> auswählen.</li>
+                  <li>Oben rechts auf <strong>„Hinzufügen“</strong> tippen.</li>
+                </ol>
+                <p className="install-dialog-note">
+                  Falls die Option fehlt, diese Seite bitte zuerst in Safari öffnen. Danach startet die Anwendung über das neue Icon im App-Modus ohne normale Browser-Navigation.
+                </p>
+              </>
+            ) : (
+              <>
+                <ol className="install-steps">
+                  <li>Das Browser-Menü öffnen.</li>
+                  <li><strong>„App installieren“</strong> oder <strong>„Zum Startbildschirm hinzufügen“</strong> wählen.</li>
+                  <li>Die Installation bestätigen.</li>
+                </ol>
+                <p className="install-dialog-note">
+                  Die genaue Bezeichnung hängt vom verwendeten Browser ab. Chrome und Edge unterstützen den direkten Installationsdialog, sobald die App installierbar ist.
+                </p>
+              </>
+            )}
+
+            <button className="install-dialog-confirm" onClick={() => setShowHelp(false)}>
+              Verstanden
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
 }
 
 function Header({
@@ -42,7 +206,17 @@ function Header({
   );
 }
 
-function HomeScreen({ openModule, openContact }: { openModule: (moduleId: string) => void; openContact: () => void }) {
+function HomeScreen({
+  openModule,
+  openContact,
+  installMode,
+  requestInstall
+}: {
+  openModule: (moduleId: string) => void;
+  openContact: () => void;
+  installMode: InstallMode;
+  requestInstall: () => Promise<"accepted" | "dismissed" | null>;
+}) {
   return (
     <div className="page-shell">
       <div className="phone">
@@ -92,6 +266,7 @@ function HomeScreen({ openModule, openContact }: { openModule: (moduleId: string
           </section>
 
           <div className="hint-box">{hubConfig.addToHomeHint}</div>
+          <InstallAppControl installMode={installMode} requestInstall={requestInstall} />
 
           <footer className="legal-footer">
             <a href={hubConfig.legal.imprintHref}>{hubConfig.legal.imprintLabel}</a>
@@ -281,6 +456,7 @@ function ContactScreen({ setView }: { setView: (view: View) => void }) {
 
 export default function App() {
   const [view, setView] = useState<View>({ type: "home" });
+  const { installMode, requestInstall } = usePwaInstall();
 
   const activeModule = useMemo(() => {
     if (view.type !== "module") return undefined;
@@ -306,6 +482,8 @@ export default function App() {
     <HomeScreen
       openModule={(moduleId) => setView({ type: "module", moduleId, screenIndex: 0 })}
       openContact={() => setView({ type: "contact" })}
+      installMode={installMode}
+      requestInstall={requestInstall}
     />
   );
 }
