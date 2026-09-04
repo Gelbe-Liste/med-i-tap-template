@@ -6,7 +6,7 @@ type View =
   | { type: "module"; moduleId: string; screenIndex: number }
   | { type: "contact" };
 
-type InstallMode = "prompt" | "ios" | "manual" | "installed";
+type InstallMode = "prompt" | "ios" | "samsung" | "manual" | "installed";
 
 type InstallPromptResult = { outcome: "accepted" | "dismissed"; platform: string };
 
@@ -26,6 +26,20 @@ function isIosDevice() {
   return classicIos || iPadDesktopMode;
 }
 
+function isSamsungInternet() {
+  return /SamsungBrowser/i.test(navigator.userAgent);
+}
+
+function openCurrentPageInChrome() {
+  const { host, pathname, search, href } = window.location;
+  const path = `${pathname}${search}`;
+  const fallbackUrl = encodeURIComponent(href);
+  const intentUrl = `intent://${host}${path}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${fallbackUrl};end`;
+
+  trackEvent("pwa_open_chrome");
+  window.location.href = intentUrl;
+}
+
 function usePwaInstall() {
   const [installMode, setInstallMode] = useState<InstallMode>("manual");
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -35,12 +49,25 @@ function usePwaInstall() {
       setInstallMode("installed");
     } else if (isIosDevice()) {
       setInstallMode("ios");
+    } else if (isSamsungInternet()) {
+      // Samsung Internet kann PWAs auf neueren Android-Versionen derzeit als
+      // WebAPK verpacken, das von Google Play Protect fälschlich als veraltet
+      // bzw. unsicher eingestuft wird. Deshalb dort nicht den nativen
+      // Installationsdialog auslösen, sondern die Installation über Chrome führen.
+      setInstallMode("samsung");
     } else {
       setInstallMode("manual");
     }
 
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
+
+      if (isSamsungInternet()) {
+        setDeferredPrompt(null);
+        setInstallMode("samsung");
+        return;
+      }
+
       setDeferredPrompt(event as BeforeInstallPromptEvent);
       setInstallMode("prompt");
     };
@@ -114,20 +141,26 @@ function InstallAppControl({
       return;
     }
 
+    if (installMode === "samsung") {
+      openCurrentPageInChrome();
+      return;
+    }
+
     trackEvent("pwa_install_help_open", { platform: installMode });
     setShowHelp(true);
   };
 
   const isIos = installMode === "ios";
+  const isSamsung = installMode === "samsung";
 
   return (
     <section className="install-card" aria-label="App auf dem Gerät installieren">
       <div className="install-card-copy">
         <strong>Direktzugriff auf dem Gerät</strong>
-        <span>Als App speichern und später ohne Browserleiste starten.</span>
+        <span>{isSamsung ? "Für eine sichere Installation bitte in Chrome fortfahren." : "Als App speichern und später ohne Browserleiste starten."}</span>
       </div>
       <button className="install-button" onClick={handleInstall}>
-        {isIos ? "Zum Home-Bildschirm" : "App installieren"}
+        {isIos ? "Zum Home-Bildschirm" : isSamsung ? "Mit Chrome installieren" : "App installieren"}
       </button>
 
       {showHelp && (

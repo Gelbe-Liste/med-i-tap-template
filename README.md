@@ -69,3 +69,10 @@ Das Template ist als installierbare Progressive Web App vorbereitet:
 - Ist die App bereits im Standalone-Modus geöffnet, wird der Installationsbutton automatisch ausgeblendet.
 
 Für Kundenprojekte sollten App-Name, `short_name`, Beschreibung und Icons im Manifest angepasst werden.
+
+
+## Android / Samsung Internet
+
+Auf neueren Android-Versionen kann Samsung Internet bei der PWA-Installation eine irreführende Google-Play-Protect-Warnung anzeigen ("für eine ältere Android-Version entwickelt"). Das betrifft den von Samsung Internet erzeugten WebAPK-Wrapper und nicht den Web-Inhalt der med.i.tap-Anwendung.
+
+Das Template erkennt Samsung Internet deshalb und löst dort **nicht** den nativen PWA-Installationsdialog aus. Stattdessen öffnet der Installationsbutton die aktuelle Anwendung in Google Chrome. Dort kann die PWA regulär als App installiert und anschließend im `standalone`-Modus ohne normale Browserleiste gestartet werden.
