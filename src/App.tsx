@@ -30,14 +30,11 @@ function isSamsungInternet() {
   return /SamsungBrowser/i.test(navigator.userAgent);
 }
 
-function openCurrentPageInChrome() {
-  const { host, pathname, search, href } = window.location;
+function buildChromeIntentUrl() {
+  const { host, pathname, search } = window.location;
   const path = `${pathname}${search}`;
-  const fallbackUrl = encodeURIComponent(href);
-  const intentUrl = `intent://${host}${path}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${fallbackUrl};end`;
 
-  trackEvent("pwa_open_chrome");
-  window.location.href = intentUrl;
+  return `intent://${host}${path}#Intent;scheme=https;package=com.android.chrome;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
 }
 
 function usePwaInstall() {
@@ -132,6 +129,7 @@ function InstallAppControl({
   requestInstall: () => Promise<"accepted" | "dismissed" | null>;
 }) {
   const [showHelp, setShowHelp] = useState(false);
+  const [showChromeHelp, setShowChromeHelp] = useState(false);
 
   if (installMode === "installed") return null;
 
@@ -142,7 +140,14 @@ function InstallAppControl({
     }
 
     if (installMode === "samsung") {
-      openCurrentPageInChrome();
+      trackEvent("pwa_open_chrome");
+      window.location.href = buildChromeIntentUrl();
+
+      window.setTimeout(() => {
+        if (document.visibilityState === "visible") {
+          setShowChromeHelp(true);
+        }
+      }, 1400);
       return;
     }
 
@@ -154,14 +159,28 @@ function InstallAppControl({
   const isSamsung = installMode === "samsung";
 
   return (
-    <section className="install-card" aria-label="App auf dem Gerät installieren">
+    <section className="install-card" aria-label="Direktzugriff auf dem Gerät speichern">
       <div className="install-card-copy">
-        <strong>Direktzugriff auf dem Gerät</strong>
-        <span>{isSamsung ? "Für eine sichere Installation bitte in Chrome fortfahren." : "Als App speichern und später ohne Browserleiste starten."}</span>
+        <strong>Direktzugriff speichern</strong>
+        <span>
+          {isSamsung
+            ? "Der Direktzugriff auf dem Home-Bildschirm wird über Google Chrome unterstützt."
+            : "Speichern Sie den Direktzugriff auf Ihrem Home-Bildschirm und öffnen Sie die Inhalte später direkt über das Icon."}
+        </span>
       </div>
       <button className="install-button" onClick={handleInstall}>
-        {isIos ? "Zum Home-Bildschirm" : isSamsung ? "Mit Chrome installieren" : "App installieren"}
+        {isIos
+          ? "Zum Home-Bildschirm hinzufügen"
+          : isSamsung
+            ? "In Google Chrome öffnen"
+            : "Auf Home-Bildschirm speichern"}
       </button>
+
+      {isSamsung && (
+        <div className="install-card-note">
+          Falls Android nach dem Browser fragt, bitte <strong>Google Chrome</strong> auswählen.
+        </div>
+      )}
 
       {showHelp && (
         <div className="install-dialog-backdrop" role="presentation" onClick={() => setShowHelp(false)}>
@@ -175,8 +194,8 @@ function InstallAppControl({
             <button className="install-dialog-close" onClick={() => setShowHelp(false)} aria-label="Hinweis schließen">
               ×
             </button>
-            <div className="install-dialog-kicker">App installieren</div>
-            <h2 id="install-dialog-title">{isIos ? "Zum Home-Bildschirm hinzufügen" : "Im Browser installieren"}</h2>
+            <div className="install-dialog-kicker">Direktzugriff speichern</div>
+            <h2 id="install-dialog-title">{isIos ? "Zum Home-Bildschirm hinzufügen" : "Auf dem Gerät speichern"}</h2>
 
             {isIos ? (
               <>
@@ -186,23 +205,47 @@ function InstallAppControl({
                   <li>Oben rechts auf <strong>„Hinzufügen“</strong> tippen.</li>
                 </ol>
                 <p className="install-dialog-note">
-                  Falls die Option fehlt, diese Seite bitte zuerst in Safari öffnen. Danach startet die Anwendung über das neue Icon im App-Modus ohne normale Browser-Navigation.
+                  Falls die Option fehlt, diese Seite bitte zuerst in Safari öffnen. Danach öffnen Sie die Inhalte über das neue Icon direkt und ohne normale Browser-Navigation.
                 </p>
               </>
             ) : (
               <>
                 <ol className="install-steps">
                   <li>Das Browser-Menü öffnen.</li>
-                  <li><strong>„App installieren“</strong> oder <strong>„Zum Startbildschirm hinzufügen“</strong> wählen.</li>
-                  <li>Die Installation bestätigen.</li>
+                  <li>Die Option zum <strong>Hinzufügen auf den Home- oder Startbildschirm</strong> auswählen.</li>
+                  <li>Das Hinzufügen bestätigen.</li>
                 </ol>
                 <p className="install-dialog-note">
-                  Die genaue Bezeichnung hängt vom verwendeten Browser ab. Chrome und Edge unterstützen den direkten Installationsdialog, sobald die App installierbar ist.
+                  Die genaue Bezeichnung hängt vom verwendeten Browser ab. Anschließend öffnen Sie die Inhalte direkt über das neue Icon.
                 </p>
               </>
             )}
 
             <button className="install-dialog-confirm" onClick={() => setShowHelp(false)}>
+              Verstanden
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showChromeHelp && (
+        <div className="install-dialog-backdrop" role="presentation" onClick={() => setShowChromeHelp(false)}>
+          <div
+            className="install-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="chrome-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button className="install-dialog-close" onClick={() => setShowChromeHelp(false)} aria-label="Hinweis schließen">
+              ×
+            </button>
+            <div className="install-dialog-kicker">Google Chrome</div>
+            <h2 id="chrome-dialog-title">Bitte in Chrome öffnen</h2>
+            <p className="install-dialog-note">
+              Sollte Android eine Browserauswahl anzeigen, wählen Sie bitte <strong>Google Chrome</strong>. Bei Auswahl von Samsung Internet gelangen Sie wieder zu dieser Seite zurück.
+            </p>
+            <button className="install-dialog-confirm" onClick={() => setShowChromeHelp(false)}>
               Verstanden
             </button>
           </div>

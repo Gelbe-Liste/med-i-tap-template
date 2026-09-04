@@ -616,6 +616,17 @@ button {
   background: #e8c100;
 }
 
+.install-card-note {
+  margin-top: -4px;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.install-card-note strong {
+  color: #ffffff;
+}
+
 .install-dialog-backdrop {
   position: absolute;
   inset: 0;

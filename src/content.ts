@@ -43,7 +43,7 @@ export const hubConfig = {
   intro:
     "Mobile-first Einstieg für Fachkreise: Inhalte werden kompakt angeteasert und führen direkt zu passenden Angeboten auf gelbe-liste.de.",
   addToHomeHint:
-    "Tipp: Für den späteren Direktzugriff kann die Anwendung als App auf dem Gerät gespeichert werden. Nach der Installation startet sie im Standalone-Modus ohne normale Browser-Navigation.",
+    "Tipp: Für den späteren Direktzugriff kann ein Icon auf dem Home-Bildschirm gespeichert werden. Beim Öffnen über das Icon werden die Inhalte direkt und ohne normale Browser-Navigation angezeigt.",
   contact: {
     label: "Kontakt",
     title: "Gelbe Liste / Vidal MMI",

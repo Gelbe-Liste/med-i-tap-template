@@ -57,22 +57,23 @@ cta: {
 Die Funktion `trackEvent` in `src/App.tsx` protokolliert aktuell nur in der Konsole. Dort kann später Piano Analytics, Matomo oder GA4 angebunden werden.
 
 
-## PWA / Installation
+## PWA / Direktzugriff
 
-Das Template ist als installierbare Progressive Web App vorbereitet:
+Das Template ist als Progressive Web App vorbereitet. In der sichtbaren Nutzerkommunikation wird bewusst nicht von einer „App-Installation“ gesprochen. Stattdessen wird der Nutzen als **Direktzugriff auf dem Home-Bildschirm** beschrieben:
 
-- `public/manifest.webmanifest` definiert App-Name, Start-URL, Farben und Icons.
-- `display: "standalone"` startet die installierte Anwendung ohne normale Browser-Navigation.
+- `public/manifest.webmanifest` definiert Name, Start-URL, Farben und Icons.
+- `display: "standalone"` öffnet den gespeicherten Direktzugriff ohne normale Browser-Navigation.
 - `public/sw.js` wird in `src/main.tsx` registriert.
-- Auf Android sowie in Chromium-basierten Desktop-Browsern nutzt der Button den nativen Installationsdialog, sofern verfügbar.
-- Auf iOS/iPadOS zeigt der Button die Schritte „Teilen“ → „Zum Home-Bildschirm“ → „Hinzufügen“.
-- Ist die App bereits im Standalone-Modus geöffnet, wird der Installationsbutton automatisch ausgeblendet.
+- Auf Android sowie in Chromium-basierten Desktop-Browsern nutzt der Button technisch den nativen PWA-Dialog, sofern verfügbar; sichtbar heißt der Button **„Auf Home-Bildschirm speichern“**.
+- Auf iOS/iPadOS lautet die Nutzerführung **„Zum Home-Bildschirm hinzufügen“**.
+- Ist die Anwendung bereits im Standalone-Modus geöffnet, wird der Speicher-Button automatisch ausgeblendet.
 
-Für Kundenprojekte sollten App-Name, `short_name`, Beschreibung und Icons im Manifest angepasst werden.
+Für Kundenprojekte sollten Name, `short_name`, Beschreibung und Icons im Manifest angepasst werden.
 
 
 ## Android / Samsung Internet
 
-Auf neueren Android-Versionen kann Samsung Internet bei der PWA-Installation eine irreführende Google-Play-Protect-Warnung anzeigen ("für eine ältere Android-Version entwickelt"). Das betrifft den von Samsung Internet erzeugten WebAPK-Wrapper und nicht den Web-Inhalt der med.i.tap-Anwendung.
+Auf neueren Android-Versionen kann Samsung Internet beim technischen PWA-Vorgang eine irreführende Google-Play-Protect-Warnung anzeigen ("für eine ältere Android-Version entwickelt"). Das betrifft den von Samsung Internet erzeugten WebAPK-Wrapper und nicht den Web-Inhalt der med.i.tap-Anwendung.
 
-Das Template erkennt Samsung Internet deshalb und löst dort **nicht** den nativen PWA-Installationsdialog aus. Stattdessen öffnet der Installationsbutton die aktuelle Anwendung in Google Chrome. Dort kann die PWA regulär als App installiert und anschließend im `standalone`-Modus ohne normale Browserleiste gestartet werden.
+Das Template erkennt Samsung Internet deshalb und löst dort **nicht** den nativen PWA-Dialog aus. Der Button heißt **„In Google Chrome öffnen“** und adressiert Chrome über einen Android-Intent mit dem Paket `com.android.chrome`. Ein Rücksprung auf dieselbe Seite wurde bewusst als Fallback entfernt, damit keine Schleife mit Samsung Internet entsteht. Falls Android dennoch eine Browserauswahl zeigt, weist die Oberfläche ausdrücklich darauf hin, **Google Chrome** auszuwählen.
+
