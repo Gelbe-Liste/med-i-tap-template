@@ -52,9 +52,13 @@ cta: {
 }
 ```
 
-## Tracking
+## Piano Analytics Tracking
 
-Die Funktion `trackEvent` in `src/App.tsx` protokolliert aktuell nur in der Konsole. Dort kann später Piano Analytics, Matomo oder GA4 angebunden werden.
+Das Template v15 enthält eine zentrale Piano-Analytics-Schicht in `src/tracking/piano.ts`. Die fachlichen Interaktionen werden auf die bestehende Vidal-/Gelbe-Liste-Semantik `page.display`, `click.action` und `pop_in.display` gemappt. Neue med.i.tap-spezifische Properties werden technisch vorbereitet, aber vor Livegang im Piano Data Model validiert.
+
+Die Piano-Konfiguration wird über `.env` bzw. Vercel Environment Variables gesteuert. Im Mastertemplate ist `VITE_PIANO_ENABLED=false`, damit lokale Entwicklung und Preview-Deployments nicht ungeprüft in die Produktivdaten laufen. Für den produktiven Betrieb nach Data-Model-/Datenschutzfreigabe auf `true` setzen.
+
+Details: `docs/PIANO-ANALYTICS.md`.
 
 
 ## PWA / Direktzugriff

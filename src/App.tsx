@@ -1,5 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { hubConfig, modules, type Cta, type HubModule, type ModuleScreen } from "./content";
+import {
+  getEntryPoint,
+  getStandaloneMode,
+  initPianoTracking,
+  sanitizeDestinationPath,
+  sanitizePageUrl,
+  trackEvent,
+  trackOnce
+} from "./tracking/piano";
 
 type View =
   | { type: "home" }
@@ -72,7 +81,12 @@ function usePwaInstall() {
     const handleInstalled = () => {
       setDeferredPrompt(null);
       setInstallMode("installed");
-      trackEvent("pwa_installed");
+      trackEvent("click.action", {
+        pop_in_type: "PWA",
+        pop_in_name: "Direct access",
+        click: "PWA installed",
+        install_outcome: "installed"
+      });
     };
 
     const mediaQuery = window.matchMedia("(display-mode: standalone)");
@@ -96,10 +110,21 @@ function usePwaInstall() {
   const requestInstall = async () => {
     if (!deferredPrompt) return null;
 
-    trackEvent("pwa_install_prompt_open");
+    trackEvent("click.action", {
+      pop_in_type: "PWA",
+      pop_in_name: "Direct access",
+      click: "Open install prompt",
+      trigger_source: "install_card"
+    });
     const choice = await deferredPrompt.prompt();
 
-    trackEvent("pwa_install_prompt_result", { outcome: choice.outcome });
+    trackEvent("click.action", {
+      pop_in_type: "PWA",
+      pop_in_name: "Direct access",
+      click: "Install prompt result",
+      install_outcome: choice.outcome,
+      trigger_source: "install_card"
+    });
 
     if (choice.outcome === "accepted") {
       setInstallMode("installed");
@@ -112,15 +137,6 @@ function usePwaInstall() {
   return { installMode, requestInstall };
 }
 
-function trackEvent(eventName: string, data?: Record<string, string | number>) {
-  console.log("[Tracking]", eventName, data);
-
-  // Später z. B. Piano Analytics, Matomo oder GA4 anbinden:
-  // window.pa?.sendEvent(eventName, data);
-  // window._paq?.push(["trackEvent", "NFC Microsite", eventName, JSON.stringify(data)]);
-  // window.gtag?.("event", eventName, data);
-}
-
 function InstallAppControl({
   installMode,
   requestInstall
@@ -131,8 +147,6 @@ function InstallAppControl({
   const [showHelp, setShowHelp] = useState(false);
   const [showChromeHelp, setShowChromeHelp] = useState(false);
 
-  if (installMode === "installed") return null;
-
   const handleInstall = async () => {
     if (installMode === "prompt") {
       await requestInstall();
@@ -140,7 +154,12 @@ function InstallAppControl({
     }
 
     if (installMode === "samsung") {
-      trackEvent("pwa_open_chrome");
+      trackEvent("click.action", {
+        pop_in_type: "PWA",
+        pop_in_name: "Direct access",
+        click: "Open in Chrome",
+        trigger_source: "install_card"
+      });
       window.location.href = buildChromeIntentUrl();
 
       window.setTimeout(() => {
@@ -151,12 +170,39 @@ function InstallAppControl({
       return;
     }
 
-    trackEvent("pwa_install_help_open", { platform: installMode });
+    trackEvent("click.action", {
+      pop_in_type: "PWA Help",
+      pop_in_name: installMode === "ios" ? "iOS home-screen help" : "Home-screen help",
+      click: "Open install help",
+      trigger_source: "install_card"
+    });
     setShowHelp(true);
   };
 
   const isIos = installMode === "ios";
   const isSamsung = installMode === "samsung";
+
+  useEffect(() => {
+    if (showHelp) {
+      trackEvent("pop_in.display", {
+        pop_in_type: "PWA Help",
+        pop_in_name: isIos ? "iOS home-screen help" : "Home-screen help",
+        page: `${hubConfig.projectName} | Home`
+      });
+    }
+  }, [showHelp, isIos]);
+
+  useEffect(() => {
+    if (showChromeHelp) {
+      trackEvent("pop_in.display", {
+        pop_in_type: "PWA Help",
+        pop_in_name: "Chrome browser help",
+        page: `${hubConfig.projectName} | Home`
+      });
+    }
+  }, [showChromeHelp]);
+
+  if (installMode === "installed") return null;
 
   return (
     <section className="install-card" aria-label="Direktzugriff auf dem Gerät speichern">
@@ -282,6 +328,59 @@ function Header({
   );
 }
 
+function TrackedModuleCard({ module, openModule }: { module: HubModule; openModule: (moduleId: string) => void }) {
+  const ref = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.35) {
+          trackOnce(`module-visible-${module.id}`, "pop_in.display", {
+            pop_in_type: "NFC Module",
+            pop_in_name: module.title,
+            page: `${hubConfig.projectName} | Home`,
+            module_id: module.id,
+            module_title: module.title
+          });
+          observer.disconnect();
+        }
+      },
+      { threshold: [0.35] }
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [module]);
+
+  return (
+    <button
+      ref={ref}
+      className="module-card"
+      style={{ background: module.theme.card, color: module.theme.text ?? "#ffffff" }}
+      onClick={() => {
+        trackEvent("click.action", {
+          pop_in_type: "NFC Module",
+          pop_in_name: module.title,
+          click: "Open module",
+          page: `${hubConfig.projectName} | Home`,
+          module_id: module.id,
+          module_title: module.title
+        });
+        openModule(module.id);
+      }}
+    >
+      <div className="module-card-topline">
+        <span className="module-badge">{module.badge}</span>
+        <span className="arrow">›</span>
+      </div>
+      <div className="eyebrow">{module.eyebrow}</div>
+      <h2>{module.title}</h2>
+      <p>{module.subtitle}</p>
+    </button>
+  );
+}
+
 function HomeScreen({
   openModule,
   openContact,
@@ -305,29 +404,7 @@ function HomeScreen({
 
           <section className="module-list" aria-label="Inhaltsmodule">
             {modules.map((module) => (
-              <button
-                key={module.id}
-                className="module-card"
-                style={{
-                  background: module.theme.card,
-                  color: module.theme.text ?? "#ffffff"
-                }}
-                onClick={() => {
-                  trackEvent("module_open", {
-                    module_id: module.id,
-                    module_title: module.title
-                  });
-                  openModule(module.id);
-                }}
-              >
-                <div className="module-card-topline">
-                  <span className="module-badge">{module.badge}</span>
-                  <span className="arrow">›</span>
-                </div>
-                <div className="eyebrow">{module.eyebrow}</div>
-                <h2>{module.title}</h2>
-                <p>{module.subtitle}</p>
-              </button>
+              <TrackedModuleCard key={module.id} module={module} openModule={openModule} />
             ))}
 
             <div className="coming-soon">
@@ -345,9 +422,15 @@ function HomeScreen({
           <InstallAppControl installMode={installMode} requestInstall={requestInstall} />
 
           <footer className="legal-footer">
-            <a href={hubConfig.legal.imprintHref}>{hubConfig.legal.imprintLabel}</a>
+            <a
+              href={hubConfig.legal.imprintHref}
+              onClick={() => trackEvent("click.action", { pop_in_type: "Footer Link", pop_in_name: hubConfig.legal.imprintLabel, click: "Open legal notice", page: `${hubConfig.projectName} | Home` })}
+            >{hubConfig.legal.imprintLabel}</a>
             <span>·</span>
-            <a href={hubConfig.legal.privacyHref}>{hubConfig.legal.privacyLabel}</a>
+            <a
+              href={hubConfig.legal.privacyHref}
+              onClick={() => trackEvent("click.action", { pop_in_type: "Footer Link", pop_in_name: hubConfig.legal.privacyLabel, click: "Open privacy policy", page: `${hubConfig.projectName} | Home` })}
+            >{hubConfig.legal.privacyLabel}</a>
           </footer>
         </main>
       </div>
@@ -355,7 +438,18 @@ function HomeScreen({
   );
 }
 
-function CtaLink({ cta, className = "primary-cta" }: { cta: Cta; className?: string }) {
+function CtaLink({
+  cta,
+  module,
+  screen,
+  className = "primary-cta"
+}: {
+  cta: Cta;
+  module: HubModule;
+  screen: ModuleScreen;
+  className?: string;
+}) {
+  const elementId = cta.analyticsId || `${module.id}-${screen.id}-cta`;
   return (
     <a
       className={className}
@@ -364,9 +458,19 @@ function CtaLink({ cta, className = "primary-cta" }: { cta: Cta; className?: str
       rel={cta.external ? "noopener noreferrer" : undefined}
       download={cta.download ? true : undefined}
       onClick={() =>
-        trackEvent(cta.download ? "file_download" : "cta_click", {
-          label: cta.label,
-          href: cta.href
+        trackEvent("click.action", {
+          pop_in_type: cta.download ? "PDF" : "CTA",
+          pop_in_name: cta.label,
+          click: cta.download ? "Open document" : "Open external link",
+          page: `${hubConfig.projectName} | ${module.title} | ${screen.label}`,
+          module_id: module.id,
+          module_title: module.title,
+          screen_id: screen.id,
+          screen_title: screen.label,
+          element_id: elementId,
+          document_id: cta.download ? (cta.documentId || elementId) : undefined,
+          destination_path: sanitizeDestinationPath(cta.href),
+          trigger_source: "module_screen"
         })
       }
     >
@@ -376,7 +480,7 @@ function CtaLink({ cta, className = "primary-cta" }: { cta: Cta; className?: str
   );
 }
 
-function ScreenContent({ screen }: { screen: ModuleScreen }) {
+function ScreenContent({ screen, module }: { screen: ModuleScreen; module: HubModule }) {
   return (
     <>
       {screen.cards && (
@@ -414,8 +518,8 @@ function ScreenContent({ screen }: { screen: ModuleScreen }) {
 
       {(screen.cta || screen.secondaryCta) && (
         <div className="cta-stack">
-          {screen.cta && <CtaLink cta={screen.cta} />}
-          {screen.secondaryCta && <CtaLink cta={screen.secondaryCta} className="secondary-cta" />}
+          {screen.cta && <CtaLink cta={screen.cta} module={module} screen={screen} />}
+          {screen.secondaryCta && <CtaLink cta={screen.secondaryCta} module={module} screen={screen} className="secondary-cta" />}
         </div>
       )}
     </>
@@ -438,22 +542,49 @@ function ModuleScreen({
   const showProgress = module.screens.length > 1;
   const hasNext = screenIndex < module.screens.length - 1;
 
-  const goHome = () => setView({ type: "home" });
+  const goHome = () => {
+    trackEvent("click.action", {
+      pop_in_type: "Navigation",
+      pop_in_name: "Header",
+      click: "Home",
+      page: `${hubConfig.projectName} | ${module.title} | ${screen.label}`,
+      module_id: module.id,
+      screen_id: screen.id,
+      trigger_source: "header"
+    });
+    setView({ type: "home" });
+  };
 
   const goNext = () => {
     if (!hasNext) {
-      trackEvent("module_complete", {
+      trackEvent("click.action", {
+        pop_in_type: "Navigation",
+        pop_in_name: "Bottom navigation",
+        click: "Complete module",
+        page: `${hubConfig.projectName} | ${module.title} | ${screen.label}`,
         module_id: module.id,
-        module_title: module.title
+        module_title: module.title,
+        screen_id: screen.id,
+        screen_number: screenIndex + 1,
+        screen_title: screen.label,
+        trigger_source: "bottom_navigation"
       });
-      goHome();
+      // Ein Nutzerklick erzeugt genau ein click.action. Der virtuelle Home-Aufruf
+      // wird anschließend separat als page.display erfasst.
+      setView({ type: "home" });
       return;
     }
 
-    trackEvent("screen_next", {
+    trackEvent("click.action", {
+      pop_in_type: "Navigation",
+      pop_in_name: "Bottom navigation",
+      click: "Next screen",
+      page: `${hubConfig.projectName} | ${module.title} | ${screen.label}`,
       module_id: module.id,
-      from_screen: screen.label,
-      to_screen: module.screens[screenIndex + 1].label
+      module_title: module.title,
+      screen_id: screen.id,
+      screen_number: screenIndex + 1,
+      screen_title: screen.label
     });
 
     setView({ type: "module", moduleId: module.id, screenIndex: screenIndex + 1 });
@@ -484,7 +615,7 @@ function ModuleScreen({
             <div className="screen-label">{screen.label}</div>
             <h1>{screen.title}</h1>
             <p>{screen.body}</p>
-            <ScreenContent screen={screen} />
+            <ScreenContent screen={screen} module={module} />
           </section>
 
           <nav className="bottom-nav">
@@ -502,7 +633,14 @@ function ContactScreen({ setView }: { setView: (view: View) => void }) {
   return (
     <div className="page-shell">
       <div className="phone">
-        <Header onHome={() => setView({ type: "home" })} onContact={() => undefined} contextText="Kontakt" />
+        <Header
+          onHome={() => {
+            trackEvent("click.action", { pop_in_type: "Navigation", pop_in_name: "Header", click: "Home", page: `${hubConfig.projectName} | Contact`, trigger_source: "header" });
+            setView({ type: "home" });
+          }}
+          onContact={() => undefined}
+          contextText="Kontakt"
+        />
 
         <main className="module-screen contact-screen">
           <section className="screen-card">
@@ -511,8 +649,8 @@ function ContactScreen({ setView }: { setView: (view: View) => void }) {
             <p>{hubConfig.contact.intro}</p>
 
             <div className="contact-list">
-              <a href={`mailto:${hubConfig.contact.email}`}>{hubConfig.contact.email}</a>
-              <a href={`tel:${hubConfig.contact.phone.replace(/\s/g, "")}`}>{hubConfig.contact.phone}</a>
+              <a href={`mailto:${hubConfig.contact.email}`} onClick={() => trackEvent("click.action", { pop_in_type: "Contact", pop_in_name: "E-Mail", click: "Open email", page: `${hubConfig.projectName} | Contact` })}>{hubConfig.contact.email}</a>
+              <a href={`tel:${hubConfig.contact.phone.replace(/\s/g, "")}`} onClick={() => trackEvent("click.action", { pop_in_type: "Contact", pop_in_name: "Phone", click: "Open phone", page: `${hubConfig.projectName} | Contact` })}>{hubConfig.contact.phone}</a>
               <span>{hubConfig.contact.companyLine}</span>
             </div>
 
@@ -520,7 +658,13 @@ function ContactScreen({ setView }: { setView: (view: View) => void }) {
           </section>
 
           <nav className="bottom-nav">
-            <button className="primary is-finish" onClick={() => setView({ type: "home" })}>
+            <button
+              className="primary is-finish"
+              onClick={() => {
+                trackEvent("click.action", { pop_in_type: "Navigation", pop_in_name: "Contact", click: "Close contact", page: `${hubConfig.projectName} | Contact` });
+                setView({ type: "home" });
+              }}
+            >
               Fertig
             </button>
           </nav>
@@ -539,6 +683,90 @@ export default function App() {
     return modules.find((module) => module.id === view.moduleId);
   }, [view]);
 
+  useEffect(() => {
+    initPianoTracking({
+      project_id: hubConfig.analytics.projectId,
+      entry_point: getEntryPoint(),
+      standalone_mode: getStandaloneMode()
+    });
+  }, []);
+
+  useEffect(() => {
+    const base = {
+      page_url: sanitizePageUrl(),
+      page_type: hubConfig.analytics.pageType,
+      visitor_type: hubConfig.analytics.visitorType,
+      article_category: hubConfig.analytics.articleCategory,
+      de_page_category: [
+        "med.i.tap",
+        hubConfig.analytics.medicalField,
+        hubConfig.analytics.indication
+      ]
+    };
+
+    if (view.type === "home") {
+      trackEvent("page.display", {
+        ...base,
+        page: `${hubConfig.projectName} | Home`,
+        de_page_tags: hubConfig.analytics.tags
+      });
+      return;
+    }
+
+    if (view.type === "contact") {
+      trackEvent("page.display", {
+        ...base,
+        page: `${hubConfig.projectName} | Contact`,
+        de_page_tags: [...hubConfig.analytics.tags, "Contact"]
+      });
+      return;
+    }
+
+    if (activeModule) {
+      const screen = activeModule.screens[view.screenIndex];
+      if (!screen) return;
+      trackEvent("page.display", {
+        ...base,
+        page: `${hubConfig.projectName} | ${activeModule.title} | ${screen.label}`,
+        de_page_tags: [...hubConfig.analytics.tags, ...(activeModule.analytics?.tags || [])],
+        article_category: activeModule.analytics?.articleCategory || hubConfig.analytics.articleCategory,
+        product_name: activeModule.analytics?.productName,
+        product_mol: activeModule.analytics?.productMol,
+        product_titulaire: activeModule.analytics?.productTitulaire,
+        product_ATC_class_code: activeModule.analytics?.productAtcClassCode,
+        product_ATC_class_name: activeModule.analytics?.productAtcClassName,
+        product_UCD10_codes: activeModule.analytics?.productUcd10Codes,
+        module_id: activeModule.id,
+        module_title: activeModule.title,
+        screen_id: screen.id,
+        screen_number: view.screenIndex + 1,
+        screen_title: screen.label
+      });
+    }
+  }, [view, activeModule]);
+
+  const openContact = () => {
+    const currentPage = view.type === "module" && activeModule
+      ? `${hubConfig.projectName} | ${activeModule.title} | ${activeModule.screens[view.screenIndex]?.label || "Module"}`
+      : `${hubConfig.projectName} | Home`;
+    const currentScreen = view.type === "module" && activeModule
+      ? activeModule.screens[view.screenIndex]
+      : undefined;
+    trackEvent("click.action", {
+      pop_in_type: "Button",
+      pop_in_name: "Contact",
+      click: "Open contact",
+      page: currentPage,
+      module_id: activeModule?.id,
+      module_title: activeModule?.title,
+      screen_id: currentScreen?.id,
+      screen_number: view.type === "module" ? view.screenIndex + 1 : undefined,
+      screen_title: currentScreen?.label,
+      trigger_source: "header"
+    });
+    setView({ type: "contact" });
+  };
+
   if (view.type === "contact") {
     return <ContactScreen setView={setView} />;
   }
@@ -549,7 +777,7 @@ export default function App() {
         module={activeModule}
         screenIndex={view.screenIndex}
         setView={setView}
-        openContact={() => setView({ type: "contact" })}
+        openContact={openContact}
       />
     );
   }
@@ -557,7 +785,7 @@ export default function App() {
   return (
     <HomeScreen
       openModule={(moduleId) => setView({ type: "module", moduleId, screenIndex: 0 })}
-      openContact={() => setView({ type: "contact" })}
+      openContact={openContact}
       installMode={installMode}
       requestInstall={requestInstall}
     />

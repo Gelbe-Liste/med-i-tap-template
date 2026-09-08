@@ -3,6 +3,8 @@ export type Cta = {
   href: string;
   external?: boolean;
   download?: boolean;
+  analyticsId?: string;
+  documentId?: string;
 };
 
 export type InfoCard = {
@@ -11,6 +13,7 @@ export type InfoCard = {
 };
 
 export type ModuleScreen = {
+  id: string;
   label: string;
   title: string;
   body: string;
@@ -33,11 +36,30 @@ export type HubModule = {
     accent: string;
     text?: string;
   };
+  analytics?: {
+    tags?: string[];
+    articleCategory?: string[];
+    productName?: string;
+    productMol?: string[];
+    productTitulaire?: string;
+    productAtcClassCode?: string[];
+    productAtcClassName?: string[];
+    productUcd10Codes?: string[];
+  };
   screens: ModuleScreen[];
 };
 
 export const hubConfig = {
   projectName: "Gelbe Liste NFC Hub",
+  analytics: {
+    projectId: "med-i-tap-template",
+    pageType: "Microsite",
+    visitorType: "Not logged",
+    medicalField: "Medizinisches Fachgebiet",
+    indication: "Indikation",
+    articleCategory: ["MED.I.TAP"],
+    tags: ["med.i.tap", "NFC", "PWA", "Gelbe Liste"]
+  },
   badge: "med.i.tap Template",
   headline: "Gelbe Liste\nFachportal",
   intro:
@@ -70,6 +92,7 @@ export const modules: HubModule[] = [
     subtitle:
       "Direkter Einstieg in die Suche nach Präparaten, Wirkstoffen und relevanten Arzneimittel-Informationen.",
     badge: "Suche",
+    analytics: { tags: ["Arzneimittelsuche", "Fachportal"] },
     theme: {
       card:
         "linear-gradient(135deg, #ffd84d 0%, #ffcf1a 42%, #d7a900 100%)",
@@ -80,6 +103,7 @@ export const modules: HubModule[] = [
     },
     screens: [
       {
+        id: "einstieg",
         label: "Einstieg",
         title: "Schneller Zugriff auf Arzneimittel-Informationen",
         body:
@@ -97,7 +121,8 @@ export const modules: HubModule[] = [
         cta: {
           label: "Zur Gelbe Liste Suche",
           href: "https://www.gelbe-liste.de/suche",
-          external: true
+          external: true,
+          analyticsId: "cta-gelbe-liste-suche"
         }
       }
     ]
@@ -109,6 +134,7 @@ export const modules: HubModule[] = [
     subtitle:
       "Kompakter Zugang zu aktuellen Nachrichten, Meldungen und Updates aus Medizin und Pharmazie.",
     badge: "News",
+    analytics: { tags: ["News", "Medizin"] },
     theme: {
       card:
         "linear-gradient(135deg, #fff6bf 0%, #ffe36a 42%, #d8b52a 100%)",
@@ -119,6 +145,7 @@ export const modules: HubModule[] = [
     },
     screens: [
       {
+        id: "ueberblick",
         label: "Überblick",
         title: "News mobil antippen und weiterlesen",
         body:
@@ -136,7 +163,8 @@ export const modules: HubModule[] = [
         cta: {
           label: "News auf gelbe-liste.de öffnen",
           href: "https://www.gelbe-liste.de/nachrichten",
-          external: true
+          external: true,
+          analyticsId: "cta-medizinische-news"
         }
       }
     ]
@@ -148,6 +176,7 @@ export const modules: HubModule[] = [
     subtitle:
       "Modulvorlage für vertiefende Inhalte, Serviceangebote oder produktnahe Informationsstrecken.",
     badge: "Service",
+    analytics: { tags: ["Fachinformation", "Service"] },
     theme: {
       card:
         "linear-gradient(135deg, #3b3414 0%, #5a4d12 52%, #8a7414 100%)",
@@ -157,6 +186,7 @@ export const modules: HubModule[] = [
     },
     screens: [
       {
+        id: "modulvorlage",
         label: "Modulvorlage",
         title: "Inhalte flexibel strukturieren",
         body:
@@ -169,7 +199,8 @@ export const modules: HubModule[] = [
         cta: {
           label: "Gelbe Liste Fachportal öffnen",
           href: "https://www.gelbe-liste.de",
-          external: true
+          external: true,
+          analyticsId: "cta-fachportal"
         }
       }
     ]
@@ -181,6 +212,7 @@ export const modules: HubModule[] = [
     subtitle:
       "Vorlage für Module rund um App-Funktionen, mobile Nutzung und digitale Services.",
     badge: "App",
+    analytics: { tags: ["App", "Digitale Werkzeuge"] },
     theme: {
       card:
         "linear-gradient(135deg, #fffdf2 0%, #fff3b8 46%, #ffd84d 100%)",
@@ -191,6 +223,7 @@ export const modules: HubModule[] = [
     },
     screens: [
       {
+        id: "digitaler-service",
         label: "Digitaler Service",
         title: "Mobile Services als Erweiterung des Fachportals",
         body:
@@ -204,7 +237,8 @@ export const modules: HubModule[] = [
         cta: {
           label: "Zur Gelbe Liste Website",
           href: "https://www.gelbe-liste.de",
-          external: true
+          external: true,
+          analyticsId: "cta-gelbe-liste-website"
         }
       }
     ]
