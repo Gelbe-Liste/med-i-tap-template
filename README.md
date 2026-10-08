@@ -54,7 +54,7 @@ cta: {
 
 ## Piano Analytics Tracking
 
-Das Template v15 enthält eine zentrale Piano-Analytics-Schicht in `src/tracking/piano.ts`. Die fachlichen Interaktionen werden auf die bestehende Vidal-/Gelbe-Liste-Semantik `page.display`, `click.action` und `pop_in.display` gemappt. Neue med.i.tap-spezifische Properties werden technisch vorbereitet, aber vor Livegang im Piano Data Model validiert.
+Das Template v16 enthält eine zentrale Piano-Analytics-Schicht in `src/tracking/piano.ts`. Stand 08.10.2026 / Mapping v1.2: `page_type="med.i.tap"`; `article_category` stammt aus der Vidal-Pagetype-Liste und `de_page_category` aus Specialty + Content Type. Die frühere Custom-Property `entry_point` ist entfernt; Acquisition läuft über die vorhandenen Piano-Dimensionen UTM Medium, UTM Source und UTM Campaign. `is_PAP=1` wird persistent gesetzt. Die fachlichen Interaktionen werden auf `page.display`, `click.action` und `pop_in.display` gemappt.
 
 Die Piano-Konfiguration wird über `.env` bzw. Vercel Environment Variables gesteuert. Im Mastertemplate ist `VITE_PIANO_ENABLED=false`, damit lokale Entwicklung und Preview-Deployments nicht ungeprüft in die Produktivdaten laufen. Für den produktiven Betrieb nach Data-Model-/Datenschutzfreigabe auf `true` setzen.
 

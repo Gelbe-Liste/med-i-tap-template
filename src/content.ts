@@ -39,12 +39,8 @@ export type HubModule = {
   analytics?: {
     tags?: string[];
     articleCategory?: string[];
-    productName?: string;
-    productMol?: string[];
-    productTitulaire?: string;
-    productAtcClassCode?: string[];
-    productAtcClassName?: string[];
-    productUcd10Codes?: string[];
+    specialtyCategories?: string[];
+    contentTypeCategories?: string[];
   };
   screens: ModuleScreen[];
 };
@@ -53,11 +49,13 @@ export const hubConfig = {
   projectName: "Gelbe Liste NFC Hub",
   analytics: {
     projectId: "med-i-tap-template",
-    pageType: "Microsite",
+    pageType: "med.i.tap",
     visitorType: "Not logged",
     medicalField: "Medizinisches Fachgebiet",
     indication: "Indikation",
-    articleCategory: ["MED.I.TAP"],
+    articleCategory: ["Content Hub"],
+    specialtyCategories: [],
+    contentTypeCategories: ["Content Hub"],
     tags: ["med.i.tap", "NFC", "PWA", "Gelbe Liste"]
   },
   badge: "med.i.tap Template",

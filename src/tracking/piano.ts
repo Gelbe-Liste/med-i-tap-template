@@ -9,7 +9,7 @@ type QueuedEvent = {
 
 const sentOnce = new Set<string>();
 const pendingEvents: QueuedEvent[] = [];
-let persistentContext: Record<string, PianoValue> = {};
+let persistentContext: Record<string, PianoValue> = { is_PAP: 1 };
 let initPromise: Promise<void> | null = null;
 
 const pianoEnabled = String(import.meta.env.VITE_PIANO_ENABLED || "false").toLowerCase() === "true";
@@ -34,7 +34,6 @@ const essentialProperties = [
   "visitor_type",
   "occupation",
   "article_category",
-  "box_names",
   "pop_in_name",
   "pop_in_type",
   "click",
@@ -48,7 +47,6 @@ const essentialProperties = [
   "document_id",
   "element_id",
   "destination_path",
-  "entry_point",
   "standalone_mode",
   "install_outcome",
   "trigger_source"
@@ -156,14 +154,6 @@ export function sanitizeDestinationPath(url: string) {
   }
 }
 
-export function getEntryPoint() {
-  const params = new URLSearchParams(window.location.search);
-  const raw = (params.get("src") || params.get("utm_source") || "").toLowerCase();
-  if (["nfc", "nfc_tag", "nfc-tag"].includes(raw)) return "nfc_tag";
-  if (["qr", "qr_code", "qr-code"].includes(raw)) return "qr_code";
-  if (raw) return raw.replace(/[^a-z0-9_-]/g, "_").slice(0, 80);
-  return "direct_link";
-}
 
 export function getStandaloneMode() {
   const iosNavigator = navigator as Navigator & { standalone?: boolean };

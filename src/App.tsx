@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { hubConfig, modules, type Cta, type HubModule, type ModuleScreen } from "./content";
 import {
-  getEntryPoint,
   getStandaloneMode,
   initPianoTracking,
   sanitizeDestinationPath,
@@ -686,7 +685,6 @@ export default function App() {
   useEffect(() => {
     initPianoTracking({
       project_id: hubConfig.analytics.projectId,
-      entry_point: getEntryPoint(),
       standalone_mode: getStandaloneMode()
     });
   }, []);
@@ -696,11 +694,10 @@ export default function App() {
       page_url: sanitizePageUrl(),
       page_type: hubConfig.analytics.pageType,
       visitor_type: hubConfig.analytics.visitorType,
-      article_category: hubConfig.analytics.articleCategory,
+      article_category: (view.type === "module" && activeModule?.analytics?.articleCategory) || hubConfig.analytics.articleCategory,
       de_page_category: [
-        "med.i.tap",
-        hubConfig.analytics.medicalField,
-        hubConfig.analytics.indication
+        ...((view.type === "module" && activeModule?.analytics?.specialtyCategories) || hubConfig.analytics.specialtyCategories || []),
+        ...((view.type === "module" && activeModule?.analytics?.contentTypeCategories) || hubConfig.analytics.contentTypeCategories || [])
       ]
     };
 
@@ -729,13 +726,6 @@ export default function App() {
         ...base,
         page: `${hubConfig.projectName} | ${activeModule.title} | ${screen.label}`,
         de_page_tags: [...hubConfig.analytics.tags, ...(activeModule.analytics?.tags || [])],
-        article_category: activeModule.analytics?.articleCategory || hubConfig.analytics.articleCategory,
-        product_name: activeModule.analytics?.productName,
-        product_mol: activeModule.analytics?.productMol,
-        product_titulaire: activeModule.analytics?.productTitulaire,
-        product_ATC_class_code: activeModule.analytics?.productAtcClassCode,
-        product_ATC_class_name: activeModule.analytics?.productAtcClassName,
-        product_UCD10_codes: activeModule.analytics?.productUcd10Codes,
         module_id: activeModule.id,
         module_title: activeModule.title,
         screen_id: screen.id,
