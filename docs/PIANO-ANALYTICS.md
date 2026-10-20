@@ -1,4 +1,4 @@
-# Piano Analytics – med.i.tap Zielstand 08.10.2026 (Mapping v1.2)
+# Piano Analytics – med.i.tap Zielstand 20.10.2026 (Mapping v1.3)
 
 ## Klassifikation
 
@@ -23,3 +23,13 @@ med.i.tap verwendet keine neuen Custom Events für den MVP: `page.display`, `cli
 ## Deployment
 
 Tracking bleibt mit `VITE_PIANO_ENABLED=false` deaktiviert. Aktivierung erst nach Data-Model-, Privacy-/Essential- und Staging-QA. Site: `640794`, Collection Domain: `https://rwwnhth.pa-cd.com`.
+
+## PWA / KPI Semantik (Mapping v1.3)
+
+- `standalone_mode` wird bei jedem virtuellen `page.display` live ermittelt: `true` = Start/Aufruf im Standalone-Modus, unabhängig vom Installationsdialog.
+- `install_outcome=accepted|dismissed` nur bei `click.action` + `click=Install prompt result` (Antwort auf Browser-Prompt); keine bestätigte Installation.
+- `install_outcome=installed` ausschließlich beim Browser-Ereignis `appinstalled` + `click=PWA installed`; iOS/manuelle Installation kann nicht verlässlich bestätigt werden.
+- `element_id` für Modul-, CTA-, Footer-, Installations- und zentrale Navigationselemente; `destination_path` nur Zielhost + Pfad (ohne Query/Hash).
+- Die Konfiguration `VITE_PIANO_ESSENTIAL_APPROVED=false` verhindert ein eigenes Essential-Override, bis die Consent-Freigabe vorliegt – inklusive `page.display`.
+
+- Custom-Videoevents sind zusätzlich über `VITE_PIANO_CUSTOM_VIDEO_EVENTS=false` standardmäßig abgeschaltet; Freigabe nur bei dokumentierter Entscheidung gegen A/V Insights.

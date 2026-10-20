@@ -16,6 +16,10 @@ const pianoEnabled = String(import.meta.env.VITE_PIANO_ENABLED || "false").toLow
 const pianoSiteId = Number(import.meta.env.VITE_PIANO_SITE_ID || 640794);
 const pianoCollectDomain = String(import.meta.env.VITE_PIANO_COLLECT_DOMAIN || "https://rwwnhth.pa-cd.com");
 const pianoSdkUrl = "https://tag.aticdn.net/piano-analytics.js";
+const customVideoEventsEnabled = String(import.meta.env.VITE_PIANO_CUSTOM_VIDEO_EVENTS || "false").toLowerCase() === "true";
+const customVideoEventNames = new Set(["video.start", "video.progress", "video.complete"]);
+// Governance gate: ohne explizite Freigabe kein Essential-Override im SDK.
+const essentialApproved = String(import.meta.env.VITE_PIANO_ESSENTIAL_APPROVED || "false").toLowerCase() === "true";
 
 const essentialProperties = [
   // Bereits in der Gelbe-Liste-Produktivkonfiguration vorhanden
@@ -52,7 +56,7 @@ const essentialProperties = [
   "trigger_source"
 ];
 
-const essentialEvents = ["pop_in.display", "click.action"];
+const essentialEvents = ["page.display", "pop_in.display", "click.action"];
 
 function cleanProperties(properties: PianoProperties = {}) {
   return Object.fromEntries(
@@ -74,6 +78,7 @@ function configureConsentLayer() {
 
   w.pdl = w.pdl || {};
   w.pdl.requireConsent = true;
+  if (!essentialApproved) return; // Vorgaben der zentralen Consent-Plattform unverändert lassen.
   const previousConsent = w.pdl.consent || {};
   w.pdl.consent = {
     ...previousConsent,
@@ -195,12 +200,14 @@ export function initPianoTracking(properties: PianoProperties = {}) {
     flushQueue();
   })().catch((error) => {
     console.warn("[Piano] Initialisierung fehlgeschlagen:", error);
+    initPromise = null; // Bei erneutem Versuch SDK-Laden wieder ermöglichen.
   });
 
   return initPromise;
 }
 
 export function trackEvent(eventName: string, properties: PianoProperties = {}) {
+  if (customVideoEventNames.has(eventName) && !customVideoEventsEnabled) return; // Nur wenn Custom Video statt A/V Insights freigegeben ist.
   const clean = cleanProperties(properties);
   const debugPayload = { ...persistentContext, ...clean };
 

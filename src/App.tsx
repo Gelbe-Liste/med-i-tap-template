@@ -19,7 +19,8 @@ type InstallMode = "prompt" | "ios" | "samsung" | "manual" | "installed";
 type InstallPromptResult = { outcome: "accepted" | "dismissed"; platform: string };
 
 type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<InstallPromptResult>;
+  prompt: () => Promise<void>;
+  userChoice: Promise<InstallPromptResult>;
 };
 
 function isStandaloneMode() {
@@ -84,7 +85,9 @@ function usePwaInstall() {
         pop_in_type: "PWA",
         pop_in_name: "Direct access",
         click: "PWA installed",
-        install_outcome: "installed"
+        install_outcome: "installed",
+        element_id: "pwa-installation",
+        trigger_source: "appinstalled"
       });
     };
 
@@ -113,22 +116,23 @@ function usePwaInstall() {
       pop_in_type: "PWA",
       pop_in_name: "Direct access",
       click: "Open install prompt",
+      element_id: "pwa-install-prompt",
       trigger_source: "install_card"
     });
-    const choice = await deferredPrompt.prompt();
+    await deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
 
     trackEvent("click.action", {
       pop_in_type: "PWA",
       pop_in_name: "Direct access",
       click: "Install prompt result",
       install_outcome: choice.outcome,
+      element_id: "pwa-install-prompt",
       trigger_source: "install_card"
     });
 
-    if (choice.outcome === "accepted") {
-      setInstallMode("installed");
-    }
-
+    // Die Annahme bestätigt NICHT die Installation. Erst appinstalled/Standalone zählt.
+    setInstallMode("manual");
     setDeferredPrompt(null);
     return choice.outcome;
   };
@@ -157,6 +161,7 @@ function InstallAppControl({
         pop_in_type: "PWA",
         pop_in_name: "Direct access",
         click: "Open in Chrome",
+        element_id: "pwa-open-chrome",
         trigger_source: "install_card"
       });
       window.location.href = buildChromeIntentUrl();
@@ -173,6 +178,7 @@ function InstallAppControl({
       pop_in_type: "PWA Help",
       pop_in_name: installMode === "ios" ? "iOS home-screen help" : "Home-screen help",
       click: "Open install help",
+      element_id: "pwa-install-help",
       trigger_source: "install_card"
     });
     setShowHelp(true);
@@ -362,6 +368,8 @@ function TrackedModuleCard({ module, openModule }: { module: HubModule; openModu
           pop_in_type: "NFC Module",
           pop_in_name: module.title,
           click: "Open module",
+          element_id: `module-open-${module.id}`,
+          trigger_source: "home",
           page: `${hubConfig.projectName} | Home`,
           module_id: module.id,
           module_title: module.title
@@ -423,12 +431,12 @@ function HomeScreen({
           <footer className="legal-footer">
             <a
               href={hubConfig.legal.imprintHref}
-              onClick={() => trackEvent("click.action", { pop_in_type: "Footer Link", pop_in_name: hubConfig.legal.imprintLabel, click: "Open legal notice", page: `${hubConfig.projectName} | Home` })}
+              onClick={() => trackEvent("click.action", { pop_in_type: "Footer Link", pop_in_name: hubConfig.legal.imprintLabel, click: "Open legal notice", element_id: "footer-imprint", destination_path: sanitizeDestinationPath(hubConfig.legal.imprintHref), trigger_source: "footer", page: `${hubConfig.projectName} | Home` })}
             >{hubConfig.legal.imprintLabel}</a>
             <span>·</span>
             <a
               href={hubConfig.legal.privacyHref}
-              onClick={() => trackEvent("click.action", { pop_in_type: "Footer Link", pop_in_name: hubConfig.legal.privacyLabel, click: "Open privacy policy", page: `${hubConfig.projectName} | Home` })}
+              onClick={() => trackEvent("click.action", { pop_in_type: "Footer Link", pop_in_name: hubConfig.legal.privacyLabel, click: "Open privacy policy", element_id: "footer-privacy", destination_path: sanitizeDestinationPath(hubConfig.legal.privacyHref), trigger_source: "footer", page: `${hubConfig.projectName} | Home` })}
             >{hubConfig.legal.privacyLabel}</a>
           </footer>
         </main>
@@ -546,6 +554,7 @@ function ModuleScreen({
       pop_in_type: "Navigation",
       pop_in_name: "Header",
       click: "Home",
+      element_id: "header-home",
       page: `${hubConfig.projectName} | ${module.title} | ${screen.label}`,
       module_id: module.id,
       screen_id: screen.id,
@@ -560,6 +569,7 @@ function ModuleScreen({
         pop_in_type: "Navigation",
         pop_in_name: "Bottom navigation",
         click: "Complete module",
+        element_id: `module-complete-${module.id}`,
         page: `${hubConfig.projectName} | ${module.title} | ${screen.label}`,
         module_id: module.id,
         module_title: module.title,
@@ -578,6 +588,8 @@ function ModuleScreen({
       pop_in_type: "Navigation",
       pop_in_name: "Bottom navigation",
       click: "Next screen",
+      element_id: `screen-next-${module.id}-${screen.id}`,
+      trigger_source: "bottom_navigation",
       page: `${hubConfig.projectName} | ${module.title} | ${screen.label}`,
       module_id: module.id,
       module_title: module.title,
@@ -693,6 +705,7 @@ export default function App() {
     const base = {
       page_url: sanitizePageUrl(),
       page_type: hubConfig.analytics.pageType,
+      standalone_mode: getStandaloneMode(),
       visitor_type: hubConfig.analytics.visitorType,
       article_category: (view.type === "module" && activeModule?.analytics?.articleCategory) || hubConfig.analytics.articleCategory,
       de_page_category: [
@@ -746,6 +759,7 @@ export default function App() {
       pop_in_type: "Button",
       pop_in_name: "Contact",
       click: "Open contact",
+      element_id: "header-contact",
       page: currentPage,
       module_id: activeModule?.id,
       module_title: activeModule?.title,
